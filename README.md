@@ -1,4 +1,4 @@
-# HyperAgents-Ollama
+# HyperAgents-Locally
 
 **Self-Improving AI Agents — Local, Cloud, or Free**
 
@@ -54,7 +54,7 @@ A fork of [facebookresearch/HyperAgents](https://github.com/facebookresearch/Hyp
 
 ```bash
 git clone <repo>
-cd HyperAgents-Ollama
+cd HyperAgents-Locally
 bash install.sh          # Python venv + dependencies
 bash install.sh --rust   # also build the Rust binary (~30s)
 bash install.sh --mlx    # also install Apple Silicon MLX support
