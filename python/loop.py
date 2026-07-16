@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -33,7 +34,7 @@ def run_command(cmd, workdir=None, timeout=3600, stream=False):
 
     If stream=True (or VERBOSE is set), streams output in real-time instead of capturing.
     """
-    cmd_str = ' '.join(cmd) if isinstance(cmd, list) else cmd
+    cmd_str = shlex.join(cmd) if isinstance(cmd, list) else cmd
     print(f"  [CMD] {cmd_str}")
     should_stream = stream or VERBOSE
     try:
