@@ -62,6 +62,21 @@ bash install.sh --mlx    # also install Apple Silicon MLX support
 
 Then edit `.env` to set your model and API keys (created automatically from `.env.example`).
 
+## Quick start
+
+Python loop:
+```bash
+python python/loop.py --domain factory --model ollama/llama3.2 --max-generation 8 --verbose
+```
+
+Rust loop:
+```bash
+cd rust
+cargo run -- --domain factory --model ollama/llama3.2 --max-generation 8 --verbose
+```
+
+The Python harness also supports `search_arena` and `paper_review`; the Rust binary currently focuses on `text_classify`, `emotion`, and `factory`.
+
 ---
 
 ## Configuration (`.env`)
