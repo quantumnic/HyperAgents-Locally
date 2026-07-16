@@ -131,7 +131,12 @@ def harness(
             ))
 
         for idx, future in futures:
-            predictions[idx] = future.result()
+            try:
+                predictions[idx] = future.result()
+            except Exception as exc:
+                question_id = dataset.iloc[idx][question_id_col]
+                print(f"Warning: task {question_id} failed: {exc}")
+                predictions[idx] = None
             if (idx + 1) % save_interval == 0:
                 dataset["prediction"] = predictions
                 dataset.to_csv(output_path, index=False)
