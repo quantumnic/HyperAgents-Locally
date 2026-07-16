@@ -522,26 +522,29 @@ def main() -> None:
     output_log: list = []
 
     # ── run ──
-    if args.task == "relay":
-        scenarios = task_def["scenarios"]
-        scenario  = scenarios[args.scenario % len(scenarios)]
-        run_relay(agent_a, agent_b, overseer, scenario, rounds, exchanges, output_log)
+    try:
+        if args.task == "relay":
+            scenarios = task_def["scenarios"]
+            scenario  = scenarios[args.scenario % len(scenarios)]
+            run_relay(agent_a, agent_b, overseer, scenario, rounds, exchanges, output_log)
 
-    elif args.task == "collaborate":
-        scenarios = task_def["scenarios"]
-        scenario  = scenarios[args.scenario % len(scenarios)]
-        run_collaborate(agent_a, agent_b, overseer, scenario, rounds, exchanges, output_log)
+        elif args.task == "collaborate":
+            scenarios = task_def["scenarios"]
+            scenario  = scenarios[args.scenario % len(scenarios)]
+            run_collaborate(agent_a, agent_b, overseer, scenario, rounds, exchanges, output_log)
 
-    elif args.task == "protocol":
-        run_protocol(agent_a, agent_b, overseer, task_def, rounds, output_log)
+        elif args.task == "protocol":
+            run_protocol(agent_a, agent_b, overseer, task_def, rounds, output_log)
 
-    elif args.task == "free":
-        topic = args.topic
-        if not topic:
-            topics = task_def["topics"]
-            topic  = topics[random.randint(0, len(topics) - 1)]
-            print(_c(f"  (random topic selected)", DIM))
-        run_free(agent_a, agent_b, overseer, topic, rounds, exchanges, output_log)
+        elif args.task == "free":
+            topic = args.topic
+            if not topic:
+                topics = task_def["topics"]
+                topic  = topics[random.randint(0, len(topics) - 1)]
+                print(_c(f"  (random topic selected)", DIM))
+            run_free(agent_a, agent_b, overseer, topic, rounds, exchanges, output_log)
+    except KeyboardInterrupt:
+        print(_c("\nInterrupted by user — saving the partial session.", YELLOW))
 
     # ── save ──
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
