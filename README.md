@@ -24,6 +24,8 @@ A fork of [facebookresearch/HyperAgents](https://github.com/facebookresearch/Hyp
 - `rust/target/release/hyperagents` — evolution loop
 - `rust/target/release/hyperagents-comms` — agent communication loop
 
+The Rust binary is intentionally scoped to the three shared benchmark domains (`text_classify`, `emotion`, `factory`). The Python harness adds the extra `search_arena` and `paper_review` suites.
+
 ---
 
 ## How it works
