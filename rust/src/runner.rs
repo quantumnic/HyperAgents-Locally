@@ -8,9 +8,9 @@ use crate::agent::meta_agent::MetaAgent;
 use crate::agent::task_agent::TaskAgent;
 use crate::domains::harness::run_harness;
 use crate::domains::report::generate_report;
-use crate::utils::progress::{print_evolution_tree, print_progress_graph};
 use crate::utils::common::{file_exists_and_not_empty, get_score_from_report};
 use crate::utils::git::{get_base_commit, git_apply_diff, git_reset};
+use crate::utils::progress::{print_evolution_tree, print_progress_graph};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ArchiveEntry {
@@ -37,7 +37,10 @@ pub struct Config {
 pub fn select_parent(archive: &[ArchiveEntry], method: &str) -> String {
     let valid: Vec<&ArchiveEntry> = archive.iter().filter(|e| e.score.is_some()).collect();
     if valid.is_empty() {
-        return archive.last().map(|e| e.id.clone()).unwrap_or_else(|| "initial".to_string());
+        return archive
+            .last()
+            .map(|e| e.id.clone())
+            .unwrap_or_else(|| "initial".to_string());
     }
     match method {
         "best" => valid
@@ -45,7 +48,10 @@ pub fn select_parent(archive: &[ArchiveEntry], method: &str) -> String {
             .max_by(|a, b| a.score.partial_cmp(&b.score).unwrap())
             .map(|e| e.id.clone())
             .unwrap_or_else(|| "initial".to_string()),
-        "latest" => valid.last().map(|e| e.id.clone()).unwrap_or_else(|| "initial".to_string()),
+        "latest" => valid
+            .last()
+            .map(|e| e.id.clone())
+            .unwrap_or_else(|| "initial".to_string()),
         _ => {
             // Proportional / random
             let scores: Vec<f64> = valid.iter().map(|e| e.score.unwrap().max(0.01)).collect();
@@ -62,7 +68,10 @@ pub fn select_parent(archive: &[ArchiveEntry], method: &str) -> String {
                     return entry.id.clone();
                 }
             }
-            valid.last().map(|e| e.id.clone()).unwrap_or_else(|| "initial".to_string())
+            valid
+                .last()
+                .map(|e| e.id.clone())
+                .unwrap_or_else(|| "initial".to_string())
         }
     }
 }
@@ -106,7 +115,10 @@ pub fn run(config: Config) -> Result<PathBuf> {
     let archive_file = output_dir.join("archive.jsonl");
 
     // Determine subset
-    let subset = if config.domain == "text_classify" || config.domain == "emotion" || config.domain == "factory" {
+    let subset = if config.domain == "text_classify"
+        || config.domain == "emotion"
+        || config.domain == "factory"
+    {
         "_train"
     } else {
         ""
@@ -141,20 +153,22 @@ pub fn run(config: Config) -> Result<PathBuf> {
         println!("\n{}", "=".repeat(60));
         println!("Generation {}/{}", gen_id, config.max_generation);
 
-        let score_history: Vec<String> = archive
-            .iter()
-            .filter(|e| e.score.is_some())
-            .map(|e| {
-                let label = if e.id == "initial" {
-                    "initial".to_string()
-                } else {
-                    format!("gen_{}", e.id)
-                };
-                format!("{}: {}", label, format_score(e.score))
-            })
-            .collect();
-        if !score_history.is_empty() {
-            println!("  Score history: {}", score_history.join(" → "));
+        if config.verbose {
+            let score_history: Vec<String> = archive
+                .iter()
+                .filter(|e| e.score.is_some())
+                .map(|e| {
+                    let label = if e.id == "initial" {
+                        "initial".to_string()
+                    } else {
+                        format!("gen_{}", e.id)
+                    };
+                    format!("{}: {}", label, format_score(e.score))
+                })
+                .collect();
+            if !score_history.is_empty() {
+                println!("  Score history: {}", score_history.join(" → "));
+            }
         }
         let best_so_far = archive
             .iter()
@@ -166,7 +180,11 @@ pub fn run(config: Config) -> Result<PathBuf> {
         let parent_id = select_parent(&archive, &config.parent_selection);
         let parent_entry = archive.iter().find(|e| e.id == parent_id).cloned();
         let parent_score = parent_entry.as_ref().and_then(|e| e.score);
-        println!("  Parent: {} (score: {})", parent_id, format_score(parent_score));
+        println!(
+            "  Parent: {} (score: {})",
+            parent_id,
+            format_score(parent_score)
+        );
 
         let gen_output_dir = output_dir.join(format!("gen_{}", gen_id));
         std::fs::create_dir_all(&gen_output_dir)?;
@@ -177,7 +195,10 @@ pub fn run(config: Config) -> Result<PathBuf> {
         // Apply parent patch if it has one
         let parent_patch_ok = apply_parent_patch(&project_dir, parent_entry.as_ref())?;
         if !parent_patch_ok {
-            println!("  Parent patch failed to apply, skipping generation {}.", gen_id);
+            println!(
+                "  Parent patch failed to apply, skipping generation {}.",
+                gen_id
+            );
             let entry = ArchiveEntry {
                 id: gen_id.to_string(),
                 parent: Some(parent_id.clone()),
@@ -274,7 +295,13 @@ pub fn run(config: Config) -> Result<PathBuf> {
         let indicator = match (score, parent_score) {
             (Some(s), Some(p)) => {
                 let delta = s - p;
-                let arrow = if delta > 0.0 { "^" } else if delta < 0.0 { "v" } else { "=" };
+                let arrow = if delta > 0.0 {
+                    "^"
+                } else if delta < 0.0 {
+                    "v"
+                } else {
+                    "="
+                };
                 format!("{} {:+.4}", arrow, delta)
             }
             _ => "N/A".to_string(),
@@ -287,7 +314,9 @@ pub fn run(config: Config) -> Result<PathBuf> {
             indicator
         );
 
-        print_progress_graph(&archive);
+        if config.verbose {
+            print_progress_graph(&archive);
+        }
     }
 
     // Final reset
@@ -298,9 +327,16 @@ pub fn run(config: Config) -> Result<PathBuf> {
     println!("RESULTS SUMMARY");
     println!("{}", "=".repeat(60));
 
-    let best_score = archive.iter().filter_map(|e| e.score).fold(0.0_f64, f64::max);
+    let best_score = archive
+        .iter()
+        .filter_map(|e| e.score)
+        .fold(0.0_f64, f64::max);
     for entry in &archive {
-        let marker = if entry.score == Some(best_score) { " *" } else { "" };
+        let marker = if entry.score == Some(best_score) {
+            " *"
+        } else {
+            ""
+        };
         let parent_str = entry.parent.as_deref().unwrap_or("-");
         println!(
             "  Gen {:>8} | Score: {:>8} | Parent: {:>8}{}",
@@ -311,16 +347,23 @@ pub fn run(config: Config) -> Result<PathBuf> {
         );
     }
 
-    print_evolution_tree(&archive);
-    print_progress_graph(&archive);
+    if config.verbose {
+        print_evolution_tree(&archive);
+        print_progress_graph(&archive);
+    }
 
     // Export best agent
-    let best = archive.iter().filter(|e| e.score.is_some()).max_by(|a, b| {
-        a.score.partial_cmp(&b.score).unwrap()
-    });
+    let best = archive
+        .iter()
+        .filter(|e| e.score.is_some())
+        .max_by(|a, b| a.score.partial_cmp(&b.score).unwrap());
 
     if let Some(best) = best {
-        println!("\n  Best: Gen {} with score {:.3}", best.id, best.score.unwrap());
+        println!(
+            "\n  Best: Gen {} with score {:.3}",
+            best.id,
+            best.score.unwrap()
+        );
 
         git_reset(&project_dir, &base_commit)?;
         if best.id != "initial" {
@@ -337,14 +380,20 @@ pub fn run(config: Config) -> Result<PathBuf> {
         let best_prompt_dst = output_dir.join("best_agent_prompt.txt");
         if best_prompt_src.exists() {
             std::fs::copy(&best_prompt_src, &best_prompt_dst)?;
-            println!("  Best agent prompt exported to: {}", best_prompt_dst.display());
+            println!(
+                "  Best agent prompt exported to: {}",
+                best_prompt_dst.display()
+            );
         }
 
         git_reset(&project_dir, &base_commit)?;
     }
 
     let elapsed = loop_start.elapsed();
-    println!("\n  Total time: {:.1} minutes", elapsed.as_secs_f64() / 60.0);
+    println!(
+        "\n  Total time: {:.1} minutes",
+        elapsed.as_secs_f64() / 60.0
+    );
     println!("  Output saved to: {}", output_dir.display());
 
     Ok(output_dir)
@@ -371,7 +420,15 @@ fn run_initial_eval(
     let agent = TaskAgent::new(model);
     let run_id = format!("initial_{}{}_0", domain, subset);
 
-    let eval_dir = run_harness(&agent, domain, output_dir.parent().unwrap_or(output_dir), &run_id, num_samples, subset, num_workers)?;
+    let eval_dir = run_harness(
+        &agent,
+        domain,
+        output_dir.parent().unwrap_or(output_dir),
+        &run_id,
+        num_samples,
+        subset,
+        num_workers,
+    )?;
     // The eval_dir IS already output_dir/run_id but run_harness puts it under output_dir arg.
     // Actually we passed output_dir.parent() so eval_dir = output_dir.parent()/run_id
     // Let's just move it: check if results landed in the right place.
@@ -398,7 +455,15 @@ fn run_eval(
     println!("  Evaluating generation {}…", gen_id);
     let agent = TaskAgent::new(model);
     let run_id = format!("{}_eval", domain);
-    let eval_dir = run_harness(&agent, domain, output_dir, &run_id, num_samples, subset, num_workers)?;
+    let eval_dir = run_harness(
+        &agent,
+        domain,
+        output_dir,
+        &run_id,
+        num_samples,
+        subset,
+        num_workers,
+    )?;
     let _ = generate_report(&eval_dir, domain);
     let score = get_score_from_report(&eval_dir.join("report.json"));
     println!("  Score for gen {}: {}", gen_id, format_score(score));
@@ -455,7 +520,11 @@ fn apply_parent_patch(project_dir: &Path, parent_entry: Option<&ArchiveEntry>) -
         if let Some(ref pf) = entry.patch_file {
             let pf_path = PathBuf::from(pf);
             // If it's an agent_prompt.txt file, just copy it
-            if pf_path.file_name().map(|n| n == "agent_prompt.txt").unwrap_or(false) {
+            if pf_path
+                .file_name()
+                .map(|n| n == "agent_prompt.txt")
+                .unwrap_or(false)
+            {
                 if pf_path.exists() {
                     let dst = project_dir.join("agent_prompt.txt");
                     std::fs::copy(&pf_path, &dst)?;
