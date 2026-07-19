@@ -64,6 +64,10 @@ fn main() {
     dotenv().ok();
     let cli = Cli::parse();
 
+    let output_dir = std::env::var_os("COMMS_OUTPUT_DIR")
+        .map(PathBuf::from)
+        .unwrap_or(cli.output_dir);
+
     let agent_model    = cli.agent_model.unwrap_or_else(|| cli.model.clone());
     let overseer_model = cli.overseer_model.unwrap_or_else(|| cli.model.clone());
 
@@ -75,7 +79,7 @@ fn main() {
         exchanges: cli.exchanges,
         scenario_idx: cli.scenario,
         topic: cli.topic,
-        output_dir: cli.output_dir,
+        output_dir,
     };
 
     match run(cfg) {

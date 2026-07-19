@@ -53,13 +53,17 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
+    let output_dir = cli
+        .output_dir
+        .or_else(|| std::env::var_os("OUTPUT_DIR").map(std::path::PathBuf::from));
+
     let config = Config {
         domain: cli.domain,
         model: cli.model,
         max_generation: cli.max_generation,
         num_samples: cli.num_samples,
         num_workers: cli.num_workers,
-        output_dir: cli.output_dir,
+        output_dir,
         parent_selection: cli.parent_selection,
         verbose: cli.verbose,
     };
