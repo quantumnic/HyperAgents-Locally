@@ -168,23 +168,16 @@ def commit_repo(git_dname, commit_message="a nonsense commit message", user_name
         "-c", f"user.email={user_email}", "commit", "-m", commit_message
     ]
     result_commit = subprocess.run(commit_cmd, capture_output=True, text=True)
-    output = result_commit.stdout.strip() + "\n" + result_commit.stderr.strip()
+    output = (result_commit.stdout + "\n" + result_commit.stderr).lower()
 
     if result_commit.returncode != 0:
-        if "nothing to commit" in output.lower():
+        if "nothing to commit" in output:
             # No changes were committed; return current commit
             return get_git_commit_hash(git_dname)
-        else:
-            print(f"commit_repo error (commit): {result_commit.stderr}")
-            return None
+        print(f"commit_repo error (commit): {result_commit.stderr}")
+        return None
 
-    # Extract the commit hash from stdout
-    parts = result_commit.stdout.strip().split()
-    if len(parts) >= 2:
-        raw_hash = parts[1].strip("[]")
-        return raw_hash
-    else:
-        return get_git_commit_hash(git_dname)
+    return get_git_commit_hash(git_dname)
 
 if __name__ == "__main__":
     # Get the current commit hash
