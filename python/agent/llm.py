@@ -138,7 +138,7 @@ def get_response_from_llm(
 
     # Convert text to content, compatible with LITELLM API
     msg_history = [
-        {**msg, "content": msg.pop("text")} if "text" in msg else msg
+        {**msg, "content": msg["text"]} if "text" in msg else dict(msg)
         for msg in msg_history
     ]
 
@@ -161,7 +161,7 @@ def get_response_from_llm(
         response_text = resp.json()["choices"][0]["message"]["content"]
         new_msg_history.append({"role": "assistant", "content": response_text})
         new_msg_history = [
-            {**m, "text": m.pop("content")} if "content" in m else m
+            {**m, "text": m["content"]} if "content" in m else dict(m)
             for m in new_msg_history
         ]
         return response_text, new_msg_history, {}
@@ -175,7 +175,7 @@ def get_response_from_llm(
         new_msg_history.append({"role": "assistant", "content": response_text})
         # Convert content→text for MetaGen API compatibility
         new_msg_history = [
-            {**m, "text": m.pop("content")} if "content" in m else m
+            {**m, "text": m["content"]} if "content" in m else dict(m)
             for m in new_msg_history
         ]
         return response_text, new_msg_history, {}
