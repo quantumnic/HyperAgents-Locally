@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # HyperAgents-Ollama — one-command installer
-# Usage: bash install.sh [--mlx] [--rust]
+# Usage: bash install.sh [--mlx] [--rust] [--help]
 #   --mlx   also install Apple Silicon MLX support
 #   --rust  also build the Rust binary (~30s)
+#   --help  show this message
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,12 +11,28 @@ cd "$SCRIPT_DIR"
 
 MLX=0
 BUILD_RUST=0
+show_help=0
 for arg in "$@"; do
   case $arg in
+    -h|--help) show_help=1 ;;
     --mlx)  MLX=1 ;;
     --rust) BUILD_RUST=1 ;;
   esac
 done
+
+usage() {
+  cat <<'EOF'
+Usage: bash install.sh [--mlx] [--rust] [--help]
+  --mlx   also install Apple Silicon MLX support
+  --rust  also build the Rust binary (~30s)
+  --help  show this message
+EOF
+}
+
+if [ "$show_help" -eq 1 ]; then
+  usage
+  exit 0
+fi
 
 echo "================================================================"
 echo "  HyperAgents-Ollama — Setup"
