@@ -116,6 +116,8 @@ def harness(
         dataset["prediction"] = None
 
     predictions = dataset["prediction"].tolist()
+    if save_interval <= 0:
+        save_interval = max(len(dataset), 1)
     futures = []
 
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
