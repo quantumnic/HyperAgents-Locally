@@ -43,8 +43,10 @@ def apply_patch(git_dname, patch_str):
     # Check if the patch was applied successfully
     if result.returncode != 0:
         print(f"apply_patch error: Patch did not fully apply. Return code: {result.returncode}, stdout: {result.stdout}, stderr: {result.stderr}")
-    else:
-        print("apply_patch successful")
+        return False
+
+    print("apply_patch successful")
+    return True
 
 def diff_versus_commit(git_dname, commit):
     """
