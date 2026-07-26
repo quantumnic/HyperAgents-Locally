@@ -13,8 +13,8 @@ def extract_jsons(response):
     Extracts all JSON objects from the given response string.
     """
     patterns = [
-        r'<json>(.*?)</json>',
-        r'```json(.*?)```',
+        r'<json>\s*(.*?)\s*</json>',
+        r'```json\s*(.*?)\s*```',
     ]
     extracted_jsons = []
 
@@ -26,6 +26,14 @@ def extract_jsons(response):
                 extracted_jsons.append(extracted_json)
             except json.JSONDecodeError:
                 continue  # Skip malformed JSON blocks
+
+    if not extracted_jsons:
+        try:
+            cleaned = response.strip()
+            if cleaned:
+                extracted_jsons.append(json.loads(cleaned))
+        except json.JSONDecodeError:
+            pass
 
     return extracted_jsons if extracted_jsons else None
 
