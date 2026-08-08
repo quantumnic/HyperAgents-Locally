@@ -11,9 +11,15 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import pandas as pd
 
+SUPPORTED_DOMAINS = {"text_classify", "emotion", "rust", "factory", "search_arena", "paper_review"}
+
 
 def get_dataset(domain, subset=""):
     """Load dataset for a given domain and subset string."""
+    if domain not in SUPPORTED_DOMAINS:
+        raise ValueError(
+            f"Unsupported domain '{domain}'. Available domains: {', '.join(sorted(SUPPORTED_DOMAINS))}"
+        )
     if domain == "text_classify":
         from domains.text_classify.dataset import get_split
         split = next((s for s in ("train", "val", "test") if s in subset), "train")
